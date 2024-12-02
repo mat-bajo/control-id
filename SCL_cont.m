@@ -28,9 +28,10 @@ K0 = -acker(A0,B0,eigctrb); % control gain
 G0 = -acker(A0',C0',eigobsv)'; % observer gain
 % State, input and output matrices
 F = [A0+G0*C0 G0*C1; zeros(n-n0,n0) A1]; 
-G = [-G0; zeros(n-n0,1)];
-H = [B0;B1];
-K = [K0 zeros(1,n-n0)];
-sysc = ss(F+H*K,G,K,0);
+G = [-G0; zeros(n-n0,1)]; G(abs(imag(G))<1e-10) = real(G(abs(imag(G))<1e-10));
+H = [B0;B1]; 
+K = [K0 zeros(1,n-n0)]; K(abs(imag(K))<1e-10) = real(K(abs(imag(K))<1e-10));
+E = F+H*K; E(abs(imag(E))<1e-10) = real(E(abs(imag(E))<1e-10));
+sysc = ss(E,G,K,0);
 end
 

@@ -55,6 +55,7 @@ sysc = SCL_cont(syspade,n0,n,eigctrb,eigobsv); % Synthesis
 syscl = lft(sysol,sysc); % Closed-loop ODE part
 syscl.B = zeros(nx+n,1); syscl.B(1:nx,1) = Bode; % Closed-loop PDE output
 syscl.C = zeros(1,nx+n); syscl.C(1,1:nx) = Code;  % Closed-loop PDE intput
+Acl0pade = [syscl.A(1:nx+n0,1:nx+n0)+syscl.B(1:nx+n0,1)*Dpde*syscl.C(1,1:nx+n0) syscl.B(1:nx+n0,1)*Cpde; Bpde*syscl.C(1,1:nx+n0) Apde];
 Aclpade = [syscl.A+syscl.B*Dpde*syscl.C syscl.B*Cpde; Bpde*syscl.C Apde];
 
 % --------------------------------------------------------------------------
@@ -75,7 +76,7 @@ for ind = 1:length(t)-1
     xode(:,ind+1) = solode.y(:,end);
 end
 figure(1)
-plot(t,sqrt(xode(1,:).^2+xode(2,:).^2),'Linewidth',4); hold on
+plot(t,sqrt(real(xode(1,:).^2+xode(2,:).^2)),'Linewidth',4); hold on
 clear xode
 
 % Closed-loop n0
@@ -92,7 +93,7 @@ for ind = 1:length(t)-1
     xode(:,ind+1) = solode.y(:,end);
 end
 
-plot(t,sqrt(xode(1,:).^2+xode(2,:).^2),'-o','Linewidth',2);
+plot(t,sqrt(real(xode(1,:).^2+xode(2,:).^2)),'-o','Linewidth',2);
 clear xode
 
 % Closed-loop n
@@ -108,7 +109,7 @@ for ind = 1:length(t)-1
     solode = ode45(@(t,y) sysn.A*y+sysn.B*ypde, ti, xode(:,ind));
     xode(:,ind+1) = solode.y(:,end);
 end
-plot(t,sqrt(xode(1,:).^2+xode(2,:).^2),'-x','Linewidth',2); 
+plot(t,sqrt(real(xode(1,:).^2+xode(2,:).^2)),'-x','Linewidth',2); 
 
 set(gca,'Fontsize',18)
 xlabel('Time $t$','Interpreter','Latex'); ylabel('Norm of the state','Interpreter','Latex')
@@ -116,6 +117,18 @@ grid on; box on;
 legend('Open-loop','Closed-loop $n=2$','Closed-loop $n=4$','Interpreter','Latex')
 ylim([0 4])
 
+% --------------------------------------------------------------------------
+% Visualisation des spectres
+% --------------------------------------------------------------------------
+figure(2)
+scatter(real(eig(syspade.A)), imag(eig(syspade.A)),100,'filled'); hold on
+scatter(real(eig(Acl0pade)), imag(eig(Acl0pade)),50,'o','Linewidth',2); hold on
+scatter(real(eig(Aclpade)), imag(eig(Aclpade)),50,'x','Linewidth',2); 
+set(gca,'Fontsize',18)
+xlabel('Real part','Interpreter','Latex'); ylabel('Imag part','Interpreter','Latex')
+grid on; box on;
+legend('Open-loop','Closed-loop $n=2$','Closed-loop $n=4$','Interpreter','Latex')
+xlim([-2.6 1]); ylim([-2.7 2.7])
 
 function [c,f,s] = pde(x,t,u,dudx,nu,lambda)
 c = 1;
